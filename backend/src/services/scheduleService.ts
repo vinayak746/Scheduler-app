@@ -1,4 +1,3 @@
-import pool from "../db";
 import {
   startOfWeek,
   endOfWeek,
@@ -6,6 +5,7 @@ import {
   format,
   getDay,
 } from "date-fns";
+import pool from "../db";
 
 interface Schedule {
   day_of_week: number;
@@ -13,71 +13,114 @@ interface Schedule {
   end_time: string;
 }
 
+// UPDATED: Added logic for max 2 recurring slots per day
 export const addRecurringSchedule = async (schedule: Schedule) => {
   const { day_of_week, start_time, end_time } = schedule;
 
-  // Use parameterized query to prevent SQL injection
+  // NEW: Check for existing recurring slots on this day
+  const existingSlots = await pool.query(
+    "SELECT COUNT(*) FROM recurring_schedules WHERE day_of_week = $1",
+    [day_of_week]
+  );
+  if (parseInt(existingSlots.rows[0].count, 10) >= 2) {
+    throw new Error("A maximum of 2 recurring slots per day is allowed.");
+  }
+
   const query = `
     INSERT INTO recurring_schedules (day_of_week, start_time, end_time)
     VALUES ($1, $2, $3)
     RETURNING *;
   `;
-
   const values = [day_of_week, start_time, end_time];
-
   const result = await pool.query(query, values);
   return result.rows[0];
 };
+
+interface ScheduleException {
+  date: string;
+  start_time: string;
+  end_time: string;
+}
+
+// NEW: Function to add a schedule exception
+export const addScheduleException = async (exception: ScheduleException) => {
+  const { date, start_time, end_time } = exception;
+
+  // NEW: Check for existing exception slots on this date
+  const existingSlots = await pool.query(
+    "SELECT COUNT(*) FROM schedule_exceptions WHERE date = $1",
+    [date]
+  );
+  if (parseInt(existingSlots.rows[0].count, 10) >= 2) {
+    throw new Error("A maximum of 2 exception slots per date is allowed.");
+  }
+
+  const query = `
+    INSERT INTO schedule_exceptions (date, start_time, end_time)
+    VALUES ($1, $2, $3)
+    RETURNING *;
+  `;
+  const values = [date, start_time, end_time];
+  const result = await pool.query(query, values);
+  return result.rows[0];
+};
+
+// UPDATED: This function is now much smarter
 export const fetchWeeklySchedules = async (targetDate: Date) => {
-  // Step 1: Calculate the start and end of the week for the given date.
-  // We'll define a week as starting on Sunday.
   const start = startOfWeek(targetDate, { weekStartsOn: 0 });
   const end = endOfWeek(targetDate, { weekStartsOn: 0 });
 
-  // Step 2: Fetch ALL recurring schedules and any exceptions within our date range.
-  // For now, we only fetch recurring schedules. We'll handle exceptions later.
+  // UPDATED: Fetch both recurring schedules AND exceptions in parallel
   const recurringSchedulesPromise = pool.query(
     "SELECT * FROM recurring_schedules;"
   );
-  // In the future, we'll also fetch from schedule_exceptions here.
-  // const exceptionsPromise = pool.query('...');
+  const exceptionsPromise = pool.query(
+    "SELECT * FROM schedule_exceptions WHERE date >= $1 AND date <= $2;",
+    [format(start, "yyyy-MM-dd"), format(end, "yyyy-MM-dd")]
+  );
 
-  const [recurringSchedulesResult] = await Promise.all([
+  const [recurringSchedulesResult, exceptionsResult] = await Promise.all([
     recurringSchedulesPromise,
+    exceptionsPromise,
   ]);
   const allRecurringSlots = recurringSchedulesResult.rows;
+  const exceptions = exceptionsResult.rows;
 
-  // Step 3: Process the data.
-  // Create a list of all 7 days in the target week.
   const weekDates = eachDayOfInterval({ start, end });
-
-  // Use a Map to build our final schedule. The key will be the date string (e.g., "2025-09-14").
   const finalSchedule = new Map<string, any[]>();
 
-  // Initialize the map with empty arrays for each day of the week.
+  // Initialize with empty arrays
   weekDates.forEach((date) => {
     finalSchedule.set(format(date, "yyyy-MM-dd"), []);
   });
 
-  // Step 4: Apply the recurring schedule logic.
-  // Go through each day of the week we're building the schedule for.
+  // Apply the recurring schedule logic first
   for (const date of weekDates) {
-    const dayOfWeek = getDay(date); // 0 for Sunday, 1 for Monday, etc.
+    const dayOfWeek = getDay(date);
     const dateString = format(date, "yyyy-MM-dd");
-
-    // Find all recurring slots that should happen on this day of the week.
     const applicableSlots = allRecurringSlots.filter(
       (slot) => slot.day_of_week === dayOfWeek
     );
-
-    // Add them to our map for that specific date.
     if (applicableSlots.length > 0) {
       finalSchedule.set(dateString, applicableSlots);
     }
   }
 
-  // Step 5: (Future) Apply exceptions here. We'll do this in the next task.
+  // NEW: Apply exceptions, overriding the recurring schedule
+  const exceptionsHandledForDate = new Set<string>();
+  for (const exception of exceptions) {
+    const dateString = format(new Date(exception.date), "yyyy-MM-dd");
 
-  // Convert the Map to a plain object for the JSON response.
+    // If this is the first time we see an exception for this date,
+    // it means the recurring schedule for this day is void. So, we wipe it.
+    if (!exceptionsHandledForDate.has(dateString)) {
+      finalSchedule.set(dateString, []);
+      exceptionsHandledForDate.add(dateString);
+    }
+
+    //Added the exception slot to the (now possibly empty) list.
+    finalSchedule.get(dateString)?.push(exception);
+  }
+
   return Object.fromEntries(finalSchedule);
 };

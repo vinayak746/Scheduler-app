@@ -52,3 +52,34 @@ export const getSchedulesForWeek = async (req: Request, res: Response) => {
     res.status(500).json({ error: "An internal server error occurred." });
   }
 };
+
+export const createScheduleException = async (req: Request, res: Response) => {
+  try {
+    const { date, start_time, end_time } = req.body;
+
+    if (!date || !start_time || !end_time) {
+      return res
+        .status(400)
+        .json({ error: "Missing required fields: date, start_time, end_time" });
+    }
+
+    // You could add more robust date/time validation here
+
+    const newException = await scheduleService.addScheduleException({
+      date,
+      start_time,
+      end_time,
+    });
+    res.status(201).json({
+      message: "Schedule exception created successfully",
+      exception: newException,
+    });
+  } catch (error) {
+    // Check if it's our custom error for too many slots
+    if (error instanceof Error && error.message.includes("maximum of 2")) {
+      return res.status(400).json({ error: error.message });
+    }
+    console.error("Error creating schedule exception:", error);
+    res.status(500).json({ error: "An internal server error occurred." });
+  }
+};
