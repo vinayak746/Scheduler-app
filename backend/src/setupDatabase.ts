@@ -27,8 +27,8 @@ const setupDatabase = async () => {
       CREATE TABLE schedule_exceptions (
         id SERIAL PRIMARY KEY,
         date DATE NOT NULL,
-        start_time TIME NOT NULL,
-        end_time TIME NOT NULL
+        start_time TIME NULL,
+        end_time TIME NULL
       );
     `);
     console.log('Table "schedule_exceptions" created.');
