@@ -10,6 +10,8 @@ import {
 import DayColumn from "./DayColumn";
 import Slot from "./Slot";
 import { fetchWeeklySchedule } from "../services/scheduleApi";
+import NewSlotForm from "./NewSlotForm";
+import Modal from "./Model";
 
 // Define a type for our schedule data for better type safety
 type ScheduleData = {
@@ -22,6 +24,11 @@ export default function Calendar() {
 
   // State to hold the schedule data that comes back from the API
   const [schedule, setSchedule] = useState<ScheduleData>({});
+
+  const [modalState, setModalState] = useState({
+    isOpen: false,
+    selectedDate: "",
+  });
 
   const goToPreviousWeek = () => {
     setCurrentDate(subDays(currentDate, 7));
@@ -60,7 +67,25 @@ export default function Calendar() {
     weekEnd,
     "d, yyyy"
   )}`;
+  const handleAddSlot = (dateString: string) => {
+    setModalState({ isOpen: true, selectedDate: dateString });
+  };
 
+  // NEW: Function to close the modal
+  const handleCloseModal = () => {
+    setModalState({ isOpen: false, selectedDate: "" });
+  };
+
+  // NEW: Function to handle saving the form (for now, it just closes the modal)
+  const handleSaveSlot = (startTime: string, endTime: string) => {
+    console.log("Slot saved (not really, this is just the UI)", {
+      date: modalState.selectedDate,
+      startTime,
+      endTime,
+    });
+    handleCloseModal();
+    // In the next step, we will also trigger a data refresh here
+  };
   return (
     <div className="container mx-auto p-4 bg-white rounded-lg shadow-lg">
       {/* ... Calendar Header remains the same for now ... */}
@@ -88,6 +113,9 @@ export default function Calendar() {
               dayName={day.dayName}
               date={day.date}
               isCurrentDay={parseInt(day.date) === new Date().getDate()}
+              onAddSlot={() =>
+                handleAddSlot(`${format(weekStart, "yyyy-MM")}-${day.date}`)
+              }
             >
               {day.slots.map((slot: any, index: number) => (
                 // Use the time format from our database (e.g., "09:00:00")
@@ -105,6 +133,13 @@ export default function Calendar() {
           </p>
         )}
       </div>
+      <Modal isOpen={modalState.isOpen} onClose={handleCloseModal}>
+        <NewSlotForm
+          slotDate={modalState.selectedDate}
+          onSave={handleSaveSlot}
+          onCancel={handleCloseModal}
+        />
+      </Modal>
     </div>
   );
 }

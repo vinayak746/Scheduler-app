@@ -27,3 +27,32 @@ export async function fetchWeeklySchedule(date: Date) {
     return {};
   }
 }
+export async function createScheduleException(slotData: {
+  date: string;
+  start_time: string;
+  end_time: string;
+}) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/schedules/exceptions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      // Convert the JavaScript object to a JSON string for the request body
+      body: JSON.stringify(slotData),
+    });
+
+    if (!response.ok) {
+      // If the server responds with an error, we throw an error
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to create schedule exception");
+    }
+
+    // Return the data from the successful response
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to create schedule exception:", error);
+    // Re-throw the error so the component can handle it (e.g., show an error message)
+    throw error;
+  }
+}

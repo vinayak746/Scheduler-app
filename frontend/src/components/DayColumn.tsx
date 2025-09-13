@@ -5,6 +5,7 @@ interface DayColumnProps {
   date: string;
   isCurrentDay?: boolean;
   children?: React.ReactNode;
+  onAddSlot?: () => void;
 }
 
 export default function DayColumn({
@@ -12,6 +13,7 @@ export default function DayColumn({
   date,
   isCurrentDay = false,
   children,
+  onAddSlot,
 }: DayColumnProps) {
   const dateCircleStyle = isCurrentDay
     ? "bg-blue-600 text-white"
@@ -40,7 +42,10 @@ export default function DayColumn({
       <div className="mt-4 space-y-2 w-full flex-grow">{children}</div>
 
       {/* "Add Slot" button placeholder */}
-      <button className="mt-4 w-full text-blue-600 hover:bg-blue-100 p-2 rounded-lg text-sm font-semibold flex items-center justify-center">
+      <button
+        onClick={onAddSlot}
+        className="mt-4 w-full text-blue-600 hover:bg-blue-100 p-2 rounded-lg text-sm font-semibold flex items-center justify-center"
+      >
         +
       </button>
     </div>
