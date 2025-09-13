@@ -14,7 +14,12 @@ const port = 3001;
 // This is a built-in middleware function in Express.
 // It parses incoming requests with JSON payloads.
 // Without this, req.body would be undefined for JSON requests.
-app.use(cors());
+// Replace the simple app.use(cors()); with this:
+app.use(
+  cors({
+    origin: "https://scheduler-vinny.vercel.app",
+  })
+);
 app.use(express.json());
 
 // A simple health-check route to confirm the API is running.
