@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 
 // The base URL of our backend API
-const API_BASE_URL = "http://localhost:3001";
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3001";
 
 /**
  * Fetches the weekly schedule from the backend for a given date.
