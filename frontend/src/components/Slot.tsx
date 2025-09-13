@@ -1,6 +1,6 @@
 import { TrashIcon, PencilIcon } from "./Icons";
-import { format, parseISO } from 'date-fns';
-import React from 'react';
+
+import React from "react";
 
 interface SlotProps {
   slot: any;
@@ -10,9 +10,8 @@ interface SlotProps {
 
 export default function Slot({ slot, onDelete, onEdit }: SlotProps) {
   const isEditable = slot.id !== undefined && slot.id !== null;
-  const startTime = slot.start_time ? slot.start_time.slice(0, 5) : '';
-  const endTime = slot.end_time ? slot.end_time.slice(0, 5) : '';
-  const slotDate = slot.date ? format(parseISO(slot.date), 'EEEE, MMM d') : '';
+  const startTime = slot.start_time ? slot.start_time.slice(0, 5) : "";
+  const endTime = slot.end_time ? slot.end_time.slice(0, 5) : "";
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -25,9 +24,11 @@ export default function Slot({ slot, onDelete, onEdit }: SlotProps) {
   };
 
   return (
-    <div 
+    <div
       className={`group relative bg-white rounded-xl border border-gray-100 p-3 transition-all duration-200 ${
-        !isEditable ? 'opacity-75' : 'hover:shadow-md hover:border-blue-100 cursor-pointer'
+        !isEditable
+          ? "opacity-75"
+          : "hover:shadow-md hover:border-blue-100 cursor-pointer"
       }`}
       onClick={isEditable ? () => onEdit(slot) : undefined}
     >
@@ -38,14 +39,14 @@ export default function Slot({ slot, onDelete, onEdit }: SlotProps) {
               {startTime} - {endTime}
             </div>
           </div>
-          
+
           {slot.notes && (
             <p className="mt-1.5 text-sm text-gray-600 line-clamp-2 leading-tight">
               {slot.notes}
             </p>
           )}
         </div>
-        
+
         {isEditable && (
           <div className="flex space-x-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
