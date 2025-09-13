@@ -4,6 +4,10 @@ A modern, responsive scheduling application built with React, TypeScript, and No
 
 ![Scheduler App Preview](https://via.placeholder.com/1200x600/4f46e5/ffffff?text=Scheduler+App+Preview)
 
+## 🌐 Live Demo
+
+Check out the live frontend here: [https://scheduler-vinny.vercel.app/](https://scheduler-vinny.vercel.app/)
+
 ## ✨ Features
 
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
