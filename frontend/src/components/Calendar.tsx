@@ -1,8 +1,15 @@
 import { useState, useEffect } from "react";
-import { format, parseISO } from "date-fns";
+import {
+  format,
+  parseISO,
+  addDays,
+  subDays,
+  startOfWeek,
+  endOfWeek,
+} from "date-fns";
 import DayColumn from "./DayColumn";
 import Slot from "./Slot";
-import { fetchWeeklySchedule } from "../services/scheduleApi"; // Import our new function
+import { fetchWeeklySchedule } from "../services/scheduleApi";
 
 // Define a type for our schedule data for better type safety
 type ScheduleData = {
@@ -16,10 +23,15 @@ export default function Calendar() {
   // State to hold the schedule data that comes back from the API
   const [schedule, setSchedule] = useState<ScheduleData>({});
 
-  // The useEffect hook runs after the component mounts and whenever its dependencies change.
-  // In our case, it will run when the component first loads, and anytime 'currentDate' changes.
+  const goToPreviousWeek = () => {
+    setCurrentDate(subDays(currentDate, 7));
+  };
+
+  // NEW: Function to handle moving to the next week
+  const goToNextWeek = () => {
+    setCurrentDate(addDays(currentDate, 7));
+  };
   useEffect(() => {
-    // Define an async function inside the effect to call our API
     const getSchedule = async () => {
       console.log("Fetching schedule for:", currentDate);
       const data = await fetchWeeklySchedule(currentDate);
@@ -42,18 +54,28 @@ export default function Calendar() {
   };
 
   const weekData = generateWeekData();
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
+  const headerTitle = `${format(weekStart, "MMM d")} - ${format(
+    weekEnd,
+    "d, yyyy"
+  )}`;
 
   return (
     <div className="container mx-auto p-4 bg-white rounded-lg shadow-lg">
       {/* ... Calendar Header remains the same for now ... */}
       <div className="flex items-center justify-between mb-4">
-        <button className="text-xl font-bold p-2 hover:bg-gray-100 rounded-full">
+        <button
+          onClick={goToPreviousWeek}
+          className="text-xl font-bold p-2 hover:bg-gray-100 rounded-full"
+        >
           ‹
         </button>
-        <h1 className="text-xl font-semibold">
-          {format(currentDate, "MMMM yyyy")}
-        </h1>
-        <button className="text-xl font-bold p-2 hover:bg-gray-100 rounded-full">
+        <h1 className="text-xl font-semibold">{headerTitle}</h1>
+        <button
+          onClick={goToNextWeek}
+          className="text-xl font-bold p-2 hover:bg-gray-100 rounded-full"
+        >
           ›
         </button>
       </div>
