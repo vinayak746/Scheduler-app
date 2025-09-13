@@ -1,4 +1,6 @@
-import { TrashIcon } from "./Icons";
+import { TrashIcon, PencilIcon } from "./Icons";
+import { format, parseISO } from 'date-fns';
+import React from 'react';
 
 interface SlotProps {
   slot: any;
@@ -8,28 +10,63 @@ interface SlotProps {
 
 export default function Slot({ slot, onDelete, onEdit }: SlotProps) {
   const isEditable = slot.id !== undefined && slot.id !== null;
-  const startTime = slot.start_time.slice(0, 5);
-  const endTime = slot.end_time.slice(0, 5);
+  const startTime = slot.start_time ? slot.start_time.slice(0, 5) : '';
+  const endTime = slot.end_time ? slot.end_time.slice(0, 5) : '';
+  const slotDate = slot.date ? format(parseISO(slot.date), 'EEEE, MMM d') : '';
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isEditable) onEdit(slot);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isEditable) onDelete(slot.id);
+  };
 
   return (
-    <div className="flex items-center justify-between w-full gap-2">
-      <button
-        onClick={() => isEditable && onEdit(slot)}
-        disabled={!isEditable}
-        className="flex-grow bg-gray-100 border border-gray-300 rounded-md p-2 text-center text-sm text-gray-800 disabled:text-gray-400 disabled:cursor-not-allowed hover:bg-gray-200"
-      >
-        {startTime} - {endTime}
-      </button>
-
-      {isEditable && (
-        <button
-          onClick={() => onDelete(slot.id)}
-          className="p-2 text-gray-400 hover:text-red-500"
-          title="Delete slot"
-        >
-          <TrashIcon />
-        </button>
-      )}
+    <div 
+      className={`group relative bg-white rounded-xl border border-gray-100 p-3 transition-all duration-200 ${
+        !isEditable ? 'opacity-75' : 'hover:shadow-md hover:border-blue-100 cursor-pointer'
+      }`}
+      onClick={isEditable ? () => onEdit(slot) : undefined}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <div className="inline-flex items-center justify-center h-7 px-2.5 rounded-md bg-blue-50 text-blue-700 text-sm font-medium">
+              {startTime} - {endTime}
+            </div>
+          </div>
+          
+          {slot.notes && (
+            <p className="mt-1.5 text-sm text-gray-600 line-clamp-2 leading-tight">
+              {slot.notes}
+            </p>
+          )}
+        </div>
+        
+        {isEditable && (
+          <div className="flex space-x-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={handleEdit}
+              className="p-1.5 text-gray-400 hover:text-blue-500 rounded-lg hover:bg-blue-50"
+              title="Edit slot"
+              aria-label="Edit time slot"
+            >
+              <PencilIcon className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={handleDelete}
+              className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50"
+              title="Delete slot"
+              aria-label="Delete time slot"
+            >
+              <TrashIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
