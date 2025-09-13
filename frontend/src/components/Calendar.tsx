@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Add useCallback
 import {
   format,
   parseISO,
@@ -9,86 +9,112 @@ import {
 } from "date-fns";
 import DayColumn from "./DayColumn";
 import Slot from "./Slot";
-import { fetchWeeklySchedule } from "../services/scheduleApi";
+// Import our new create function
+import {
+  fetchWeeklySchedule,
+  createScheduleException,
+  deleteScheduleException,
+} from "../services/scheduleApi";
+import Modal from "./Model"; // Make sure this filename matches yours (Modal.tsx)
 import NewSlotForm from "./NewSlotForm";
-import Modal from "./Model";
 
-// Define a type for our schedule data for better type safety
 type ScheduleData = {
-  [date: string]: any[]; // e.g., { '2025-09-13': [{ id: 1, ... }] }
+  [date: string]: any[];
 };
 
 export default function Calendar() {
-  // State to hold the current date we are viewing
   const [currentDate, setCurrentDate] = useState(new Date());
-
-  // State to hold the schedule data that comes back from the API
   const [schedule, setSchedule] = useState<ScheduleData>({});
-
   const [modalState, setModalState] = useState({
     isOpen: false,
     selectedDate: "",
   });
 
+  // REFACTORED: We've pulled the data fetching logic into its own function.
+  // We wrap it in useCallback to prevent it from being recreated on every render.
+  const getSchedule = useCallback(async () => {
+    console.log("Fetching schedule for:", currentDate);
+    const data = await fetchWeeklySchedule(currentDate);
+    setSchedule(data);
+  }, [currentDate]); // This function depends on 'currentDate'
+
+  // useEffect now simply calls our stable getSchedule function.
+  useEffect(() => {
+    getSchedule();
+  }, [getSchedule]); // The effect now depends on the getSchedule function itself.
+
   const goToPreviousWeek = () => {
     setCurrentDate(subDays(currentDate, 7));
   };
 
-  // NEW: Function to handle moving to the next week
   const goToNextWeek = () => {
     setCurrentDate(addDays(currentDate, 7));
   };
-  useEffect(() => {
-    const getSchedule = async () => {
-      console.log("Fetching schedule for:", currentDate);
-      const data = await fetchWeeklySchedule(currentDate);
-      setSchedule(data); // Update our state with the fetched data
-    };
 
-    getSchedule();
-  }, [currentDate]); // The dependency array: this effect depends on 'currentDate'
-
-  // Helper function to create the display data for our grid from the fetched schedule
-  const generateWeekData = () => {
-    return Object.entries(schedule).map(([dateString, slots]) => {
-      const date = parseISO(dateString); // Convert '2025-09-13' string back to a Date object
-      return {
-        dayName: format(date, "EEE"), // 'Sun', 'Mon', etc.
-        date: format(date, "d"), // '7', '8', etc.
-        slots: slots,
-      };
-    });
-  };
-
-  const weekData = generateWeekData();
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
-  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 0 });
-  const headerTitle = `${format(weekStart, "MMM d")} - ${format(
-    weekEnd,
-    "d, yyyy"
-  )}`;
   const handleAddSlot = (dateString: string) => {
     setModalState({ isOpen: true, selectedDate: dateString });
   };
 
-  // NEW: Function to close the modal
   const handleCloseModal = () => {
     setModalState({ isOpen: false, selectedDate: "" });
   };
 
-  // NEW: Function to handle saving the form (for now, it just closes the modal)
-  const handleSaveSlot = (startTime: string, endTime: string) => {
-    console.log("Slot saved (not really, this is just the UI)", {
-      date: modalState.selectedDate,
-      startTime,
-      endTime,
-    });
-    handleCloseModal();
-    // In the next step, we will also trigger a data refresh here
+  // UPDATED: This function is now async and calls our API
+  const handleSaveSlot = async (startTime: string, endTime: string) => {
+    try {
+      await createScheduleException({
+        date: modalState.selectedDate,
+        start_time: startTime,
+        end_time: endTime,
+      });
+
+      console.log("Slot saved successfully!");
+      handleCloseModal();
+
+      // After saving, we call getSchedule() again to refresh the data on the screen.
+      // This is the key to making the UI update automatically.
+      await getSchedule();
+    } catch (error) {
+      console.error("Failed to save the slot.", error);
+      // Here you could add state to show an error message to the user
+      alert(
+        "Error: Could not save the slot. Please check the console for details."
+      );
+    }
   };
+  const handleDeleteSlot = async (slotId: number) => {
+    // Ask for confirmation before deleting
+    if (window.confirm("Are you sure you want to delete this slot?")) {
+      try {
+        await deleteScheduleException(slotId);
+        console.log("Slot deleted successfully!");
+        // Refresh the schedule to show the slot has been removed
+        await getSchedule();
+      } catch (error) {
+        console.error("Failed to delete the slot.", error);
+        alert("Error: Could not delete the slot.");
+      }
+    }
+  };
+
+  const weekStart = startOfWeek(currentDate, { weekStartsOn: 0 });
+  // IMPROVED: We now add the full date string to our data for more robust keys and checks
+  const weekData = Object.entries(schedule).map(([dateString, slots]) => {
+    const date = parseISO(dateString);
+    return {
+      fullDate: dateString, // e.g., '2025-09-13'
+      dayName: format(date, "EEE"),
+      date: format(date, "d"),
+      slots: slots,
+    };
+  });
+  const headerTitle = `${format(weekStart, "MMM d")} - ${format(
+    endOfWeek(currentDate, { weekStartsOn: 0 }),
+    "d, yyyy"
+  )}`;
+
   return (
     <div className="container mx-auto p-4 bg-white rounded-lg shadow-lg">
-      {/* ... Calendar Header remains the same for now ... */}
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={goToPreviousWeek}
@@ -104,25 +130,24 @@ export default function Calendar() {
           ›
         </button>
       </div>
-
       <div className="grid grid-cols-7 border-t border-l border-gray-200">
         {weekData.length > 0 ? (
           weekData.map((day) => (
             <DayColumn
-              key={day.dayName}
+              key={day.fullDate} // IMPROVED: Use a guaranteed unique key
               dayName={day.dayName}
               date={day.date}
-              isCurrentDay={parseInt(day.date) === new Date().getDate()}
-              onAddSlot={() =>
-                handleAddSlot(`${format(weekStart, "yyyy-MM")}-${day.date}`)
-              }
+              // IMPROVED: More robust check for the current day
+              isCurrentDay={day.fullDate === format(new Date(), "yyyy-MM-dd")}
+              onAddSlot={() => handleAddSlot(day.fullDate)}
             >
               {day.slots.map((slot: any, index: number) => (
-                // Use the time format from our database (e.g., "09:00:00")
                 <Slot
-                  key={index}
+                  key={slot.id || index} // Use slot.id if it exists, for a more stable key
+                  id={slot.id} // Pass the slot's ID
                   startTime={slot.start_time.slice(0, 5)}
                   endTime={slot.end_time.slice(0, 5)}
+                  onDelete={handleDeleteSlot} // Pass the delete handler function
                 />
               ))}
             </DayColumn>

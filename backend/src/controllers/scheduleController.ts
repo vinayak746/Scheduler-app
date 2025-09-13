@@ -17,11 +17,9 @@ export const createRecurringSchedule = async (req: Request, res: Response) => {
 
     // Perform basic input validation.
     if (day_of_week === undefined || !start_time || !end_time) {
-      return res
-        .status(400)
-        .json({
-          error: "Missing required fields: day_of_week, start_time, end_time",
-        });
+      return res.status(400).json({
+        error: "Missing required fields: day_of_week, start_time, end_time",
+      });
     }
     // ... more validation ...
 
@@ -33,12 +31,10 @@ export const createRecurringSchedule = async (req: Request, res: Response) => {
     });
 
     // Send a success response. 201 means "Created".
-    res
-      .status(201)
-      .json({
-        message: "Recurring schedule created successfully",
-        schedule: newSchedule,
-      });
+    res.status(201).json({
+      message: "Recurring schedule created successfully",
+      schedule: newSchedule,
+    });
   } catch (error) {
     // This custom error handling checks for specific business rule violations
     // (like "max 2 slots") and sends a user-friendly 400 error.
@@ -88,12 +84,10 @@ export const createScheduleException = async (req: Request, res: Response) => {
       start_time,
       end_time,
     });
-    res
-      .status(201)
-      .json({
-        message: "Schedule exception created successfully",
-        exception: newException,
-      });
+    res.status(201).json({
+      message: "Schedule exception created successfully",
+      exception: newException,
+    });
   } catch (error) {
     if (error instanceof Error && error.message.includes("maximum of 2")) {
       return res.status(400).json({ error: error.message });
@@ -121,6 +115,23 @@ export const deleteScheduleForDate = async (req: Request, res: Response) => {
       .json({ message: `Schedule for date ${date} has been cancelled.` });
   } catch (error) {
     console.error("Error cancelling schedule:", error);
+    res.status(500).json({ error: "An internal server error occurred." });
+  }
+};
+// Add this function to the file
+export const deleteExceptionById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const exceptionId = parseInt(id, 10);
+    if (isNaN(exceptionId)) {
+      return res.status(400).json({ error: "Invalid exception ID." });
+    }
+    await scheduleService.deleteScheduleException(exceptionId);
+    res
+      .status(200)
+      .json({ message: "Schedule exception deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting exception:", error);
     res.status(500).json({ error: "An internal server error occurred." });
   }
 };

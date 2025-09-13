@@ -56,3 +56,22 @@ export async function createScheduleException(slotData: {
     throw error;
   }
 }
+
+export async function deleteScheduleException(exceptionId: number) {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/schedules/exceptions/${exceptionId}`,
+      {
+        method: "DELETE",
+      }
+    );
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to delete schedule exception");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to delete schedule exception:", error);
+    throw error;
+  }
+}

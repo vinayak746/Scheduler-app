@@ -183,3 +183,14 @@ export const fetchWeeklySchedules = async (targetDate: Date) => {
   // Convert our Map to a plain object for the JSON response and return it.
   return Object.fromEntries(finalSchedule);
 };
+// Add this function to the file
+export const deleteScheduleException = async (exceptionId: number) => {
+  const result = await pool.query(
+    "DELETE FROM schedule_exceptions WHERE id = $1 RETURNING *;",
+    [exceptionId]
+  );
+  if (result.rowCount === 0) {
+    throw new Error("Exception not found or could not be deleted.");
+  }
+  return result.rows[0];
+};

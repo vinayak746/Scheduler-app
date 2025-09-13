@@ -4,13 +4,12 @@ const setupDatabase = async () => {
   try {
     console.log("Starting database setup...");
 
-    // Drop tables if they exist to start fresh
+    // These lines will drop (delete) the tables if they already exist.
     await pool.query("DROP TABLE IF EXISTS schedule_exceptions;");
     await pool.query("DROP TABLE IF EXISTS recurring_schedules;");
     console.log("Existing tables dropped.");
 
-    // Create recurring_schedules table
-    // day_of_week: 0 for Sunday, 1 for Monday, ..., 6 for Saturday
+    // This creates the table for recurring rules.
     await pool.query(`
       CREATE TABLE recurring_schedules (
         id SERIAL PRIMARY KEY,
@@ -21,14 +20,14 @@ const setupDatabase = async () => {
     `);
     console.log('Table "recurring_schedules" created.');
 
-    // Create schedule_exceptions table
-    // This table overrides the recurring schedule for a specific date.
+    // This is the important part. This creates the exceptions table WITH THE 'TYPE' COLUMN.
     await pool.query(`
       CREATE TABLE schedule_exceptions (
         id SERIAL PRIMARY KEY,
         date DATE NOT NULL,
-        start_time TIME NULL,
-        end_time TIME NULL
+        start_time TIME, -- Nullable
+        end_time TIME, -- Nullable
+        type VARCHAR(20) NOT NULL CHECK (type IN ('override', 'cancellation')) -- THIS LINE IS THE FIX
       );
     `);
     console.log('Table "schedule_exceptions" created.');
@@ -37,7 +36,7 @@ const setupDatabase = async () => {
   } catch (error) {
     console.error("Error setting up database:", error);
   } finally {
-    // End the pool connection
+    // This makes sure the connection is closed after the script runs.
     await pool.end();
   }
 };

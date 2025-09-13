@@ -34,6 +34,8 @@ router.post("/exceptions", scheduleController.createScheduleException);
  * DESC: Creates a "cancellation" exception for a specific date, ensuring no
  * slots (recurring or otherwise) appear on that day.
  */
+router.delete("/exceptions/:id", scheduleController.deleteExceptionById);
+
 router.delete("/:date", scheduleController.deleteScheduleForDate);
 
 export default router;
