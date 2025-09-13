@@ -1,10 +1,11 @@
+import Calendar from "./components/Calendar";
+
 function App() {
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold text-center text-blue-600">
-        Scheduler Frontend (Vite Edition!)
-      </h1>
-    </div>
+    // The bg-gray-100 and min-h-screen classes give us a nice light gray background.
+    <main className="bg-gray-100 min-h-screen">
+      <Calendar />
+    </main>
   );
 }
 

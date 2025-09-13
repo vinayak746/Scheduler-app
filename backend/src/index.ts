@@ -6,6 +6,7 @@ dotenv.config();
 
 import express, { Request, Response } from "express";
 import scheduleRoutes from "./routes/scheduleRoutes"; // Import our custom router
+import cors from "cors";
 
 const app = express();
 const port = 3001;
@@ -13,6 +14,7 @@ const port = 3001;
 // This is a built-in middleware function in Express.
 // It parses incoming requests with JSON payloads.
 // Without this, req.body would be undefined for JSON requests.
+app.use(cors());
 app.use(express.json());
 
 // A simple health-check route to confirm the API is running.
