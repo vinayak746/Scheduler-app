@@ -183,7 +183,7 @@ export const fetchWeeklySchedules = async (targetDate: Date) => {
   // Convert our Map to a plain object for the JSON response and return it.
   return Object.fromEntries(finalSchedule);
 };
-// Add this function to the file
+
 export const deleteScheduleException = async (exceptionId: number) => {
   const result = await pool.query(
     "DELETE FROM schedule_exceptions WHERE id = $1 RETURNING *;",
@@ -191,6 +191,21 @@ export const deleteScheduleException = async (exceptionId: number) => {
   );
   if (result.rowCount === 0) {
     throw new Error("Exception not found or could not be deleted.");
+  }
+  return result.rows[0];
+};
+
+export const updateScheduleException = async (
+  id: number,
+  updates: { start_time: string; end_time: string }
+) => {
+  const { start_time, end_time } = updates;
+  const result = await pool.query(
+    "UPDATE schedule_exceptions SET start_time = $1, end_time = $2 WHERE id = $3 RETURNING *;",
+    [start_time, end_time, id]
+  );
+  if (result.rowCount === 0) {
+    throw new Error("Exception not found or could not be updated.");
   }
   return result.rows[0];
 };

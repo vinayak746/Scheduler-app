@@ -118,7 +118,7 @@ export const deleteScheduleForDate = async (req: Request, res: Response) => {
     res.status(500).json({ error: "An internal server error occurred." });
   }
 };
-// Add this function to the file
+
 export const deleteExceptionById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
@@ -132,6 +132,37 @@ export const deleteExceptionById = async (req: Request, res: Response) => {
       .json({ message: "Schedule exception deleted successfully." });
   } catch (error) {
     console.error("Error deleting exception:", error);
+    res.status(500).json({ error: "An internal server error occurred." });
+  }
+};
+
+export const updateExceptionById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const exceptionId = parseInt(id, 10);
+    const { start_time, end_time } = req.body;
+
+    if (isNaN(exceptionId)) {
+      return res.status(400).json({ error: "Invalid exception ID." });
+    }
+    if (!start_time || !end_time) {
+      return res
+        .status(400)
+        .json({ error: "Start time and end time are required." });
+    }
+
+    const updatedException = await scheduleService.updateScheduleException(
+      exceptionId,
+      { start_time, end_time }
+    );
+    res
+      .status(200)
+      .json({
+        message: "Schedule exception updated successfully.",
+        exception: updatedException,
+      });
+  } catch (error) {
+    console.error("Error updating exception:", error);
     res.status(500).json({ error: "An internal server error occurred." });
   }
 };

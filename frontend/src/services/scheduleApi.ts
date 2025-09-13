@@ -75,3 +75,24 @@ export async function deleteScheduleException(exceptionId: number) {
     throw error;
   }
 }
+
+export async function updateScheduleException(
+  id: number,
+  slotData: { start_time: string; end_time: string }
+) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/schedules/exceptions/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(slotData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to update schedule exception");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Failed to update schedule exception:", error);
+    throw error;
+  }
+}

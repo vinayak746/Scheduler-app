@@ -1,31 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface NewSlotFormProps {
   slotDate: string;
+  initialData?: { startTime: string; endTime: string }; // Optional initial data for editing
   onSave: (startTime: string, endTime: string) => void;
   onCancel: () => void;
 }
 
 export default function NewSlotForm({
   slotDate,
+  initialData,
   onSave,
   onCancel,
 }: NewSlotFormProps) {
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
 
+  // We check if initialData exists to determine if we're in "edit" mode.
+  const isEditMode = !!initialData;
+
+  useEffect(() => {
+    // This effect runs when the component loads.
+    // If we are in "edit" mode, it pre-fills the form fields with the existing slot's data.
+    if (initialData) {
+      setStartTime(initialData.startTime.slice(0, 5));
+      setEndTime(initialData.endTime.slice(0, 5));
+    }
+  }, [initialData]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // In the next step, this will call our API. For now, it just logs the data.
-    console.log({ date: slotDate, startTime, endTime });
     onSave(startTime, endTime);
   };
 
   return (
     <form onSubmit={handleSubmit}>
-      <h2 className="text-xl font-semibold mb-4">Add New Slot</h2>
+      <h2 className="text-xl font-semibold mb-4">
+        {isEditMode ? "Edit Slot" : "Add New Slot"}
+      </h2>
       <p className="mb-4 text-gray-600">
-        Creating a slot for: <span className="font-bold">{slotDate}</span>
+        For: <span className="font-bold">{slotDate}</span>
       </p>
 
       <div className="mb-4">
@@ -74,7 +88,7 @@ export default function NewSlotForm({
           type="submit"
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-semibold"
         >
-          Save Slot
+          {isEditMode ? "Update Slot" : "Save Slot"}
         </button>
       </div>
     </form>
