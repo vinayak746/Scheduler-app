@@ -1,7 +1,7 @@
 import React from "react";
 
 interface DayColumnProps {
-  dayInfo: { fullDate: string; dayName: string; date: string; slots: any[] };
+  dayInfo: { dayName: string; date: string };
   isCurrentDay: boolean;
   onAddSlot: () => void;
   children: React.ReactNode;
@@ -16,11 +16,14 @@ export default function DayColumn({
   const dateCircleStyle = isCurrentDay
     ? "bg-blue-600 text-white"
     : "bg-transparent text-gray-700";
+  const dayNameStyle = isCurrentDay
+    ? "text-blue-600 font-semibold"
+    : "text-gray-500";
 
   return (
     <div className="border-r border-b border-gray-200 p-2 flex flex-col">
       <div className="flex flex-col items-center">
-        <p className="text-xs font-medium text-gray-500">
+        <p className={`text-sm font-medium ${dayNameStyle}`}>
           {dayInfo.dayName.toUpperCase()}
         </p>
         <div
@@ -32,9 +35,9 @@ export default function DayColumn({
       <div className="mt-4 space-y-2 w-full flex-grow">{children}</div>
       <button
         onClick={onAddSlot}
-        className="mt-4 w-full text-blue-600 hover:bg-blue-100 p-2 rounded-lg text-sm font-semibold flex items-center justify-center"
+        className="mt-4 w-full text-blue-600 hover:bg-blue-100 p-2 rounded-lg text-sm font-semibold"
       >
-        +
+        + Add Slot
       </button>
     </div>
   );

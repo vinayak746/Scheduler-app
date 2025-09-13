@@ -1,11 +1,10 @@
+// src/components/Calendar.tsx
 import { useState, useEffect, useCallback } from "react";
 import {
   format,
   parseISO,
   addDays,
   subDays,
-  startOfWeek,
-  endOfWeek,
   getDay,
   setMonth,
   getYear,
@@ -21,6 +20,7 @@ import {
 } from "../services/scheduleApi";
 import Modal from "./Model";
 import NewSlotForm from "./NewSlotForm";
+import { HamburgerIcon } from "./Icons";
 
 type ScheduleData = { [date: string]: any[] };
 
@@ -28,20 +28,15 @@ export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [schedule, setSchedule] = useState<ScheduleData>({});
   const [isMonthPickerOpen, setMonthPickerOpen] = useState(false);
-
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     mode: "add" | "edit";
     data: any;
   }>({ isOpen: false, mode: "add", data: null });
 
-  // --- Logic Functions ---
-
   const getSchedule = useCallback(async () => {
-    const data = await fetchWeeklySchedule(currentDate);
-    setSchedule(data);
+    setSchedule(await fetchWeeklySchedule(currentDate));
   }, [currentDate]);
-
   useEffect(() => {
     getSchedule();
   }, [getSchedule]);
@@ -77,8 +72,7 @@ export default function Calendar() {
       handleCloseModal();
       await getSchedule();
     } catch (error) {
-      alert("Error: Could not save the slot. See console for details.");
-      console.error(error);
+      alert("Error: Could not save the slot.");
     }
   };
 
@@ -92,8 +86,6 @@ export default function Calendar() {
       }
     }
   };
-
-  // --- Data Preparation for Rendering ---
 
   const weekData = Object.entries(schedule).map(([dateString, slots]) => {
     const date = parseISO(dateString);
@@ -115,15 +107,20 @@ export default function Calendar() {
 
   return (
     <div className="w-full bg-gray-50 min-h-screen">
-      <div className="w-full max-w-md mx-auto bg-gray-50 flex flex-col md:max-w-7xl md:bg-white md:rounded-lg md:shadow-lg md:my-8">
-        <header className="flex items-center justify-between p-4 bg-white shadow-md md:shadow-none md:border-b md:border-gray-200">
-          <button className="text-2xl md:hidden">☰</button>
-          <div className="relative">
+      <div className="w-full max-w-md mx-auto bg-white flex flex-col md:max-w-7xl md:rounded-lg md:shadow-lg md:my-8">
+        <header className="flex items-center justify-between p-4 border-b border-gray-200">
+          <button className="text-gray-500 md:hidden">
+            <HamburgerIcon />
+          </button>
+          <div className="relative text-center md:text-left">
+            <h1 className="text-lg font-bold text-gray-800 hidden md:block">
+              Your Schedule
+            </h1>
             <h2
-              className="font-semibold cursor-pointer"
+              className="font-semibold text-gray-500 text-sm cursor-pointer"
               onClick={() => setMonthPickerOpen(!isMonthPickerOpen)}
             >
-              {headerTitle} <span className="text-gray-500">⌄</span>
+              {headerTitle} <span>⌄</span>
             </h2>
             {isMonthPickerOpen && (
               <div className="absolute top-full mt-2 bg-white shadow-lg rounded-md p-2 z-10 w-48">
@@ -153,37 +150,54 @@ export default function Calendar() {
               ›
             </button>
           </div>
-          <button className="px-4 py-1.5 bg-gray-800 text-white font-semibold rounded-md">
+          <button className="px-4 py-2 bg-gray-800 text-white font-semibold rounded-md">
             Save
           </button>
         </header>
-
         {/* --- MOBILE VIEW --- */}
-        <main className="flex-grow overflow-y-auto bg-white md:hidden">
-          {weekData.map((day) => (
-            <DayRow
-              key={day.fullDate}
-              dayInfo={day}
-              isToday={day.fullDate === todayDate}
-              onAddSlot={() => handleOpenAddModal(day.fullDate)}
-            >
-              {day.slots.map((slot) => (
-                <Slot
-                  key={slot.id || `${slot.start_time}`}
-                  slot={slot}
-                  onDelete={handleDeleteSlot}
-                  onEdit={handleOpenEditModal}
-                />
-              ))}
-            </DayRow>
-          ))}
-        </main>
-
+        <div className="md:hidden">
+          <div className="p-4 bg-white grid grid-cols-7 gap-1 text-center">
+            {weekData.map((day) => (
+              <div
+                key={day.fullDate}
+                className={`p-2 rounded-lg ${
+                  day.fullDate === todayDate
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100"
+                }`}
+              >
+                <span className="text-xs font-semibold">
+                  {weekDayAbbrs[day.dayOfWeek]}
+                </span>
+                <span className="mt-1 block font-bold">{day.date}</span>
+              </div>
+            ))}
+          </div>
+          <main className="flex-grow overflow-y-auto bg-white">
+            {weekData.map((day) => (
+              <DayRow
+                key={day.fullDate}
+                dayInfo={day}
+                isToday={day.fullDate === todayDate}
+                onAddSlot={() => handleOpenAddModal(day.fullDate)}
+              >
+                {day.slots.map((slot) => (
+                  <Slot
+                    key={slot.id || `${slot.start_time}`}
+                    slot={slot}
+                    onDelete={handleDeleteSlot}
+                    onEdit={handleOpenEditModal}
+                  />
+                ))}
+              </DayRow>
+            ))}
+          </main>
+        </div>
         {/* --- DESKTOP VIEW --- */}
-        <div
-          className="hidden md:grid grid-cols-7"
-          style={{ minHeight: "60vh" }}
-        >
+
+        <div className="hidden md:grid grid-cols-7 bg-gray-50 border-t border-gray-200">
+          {" "}
+          {/* <--- ADD bg-gray-50 AND BORDERS HERE */}
           {weekData.map((day) => (
             <DayColumn
               key={day.fullDate}

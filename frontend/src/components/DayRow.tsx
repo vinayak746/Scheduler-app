@@ -1,13 +1,7 @@
 import React from "react";
-import Slot from "./Slot"; // Import Slot to be used as a child
 
 interface DayRowProps {
-  dayInfo: {
-    fullDate: string;
-    dayName: string;
-    date: string;
-    slots: any[];
-  };
+  dayInfo: { fullDate: string; slots: any[] };
   isToday: boolean;
   onAddSlot: () => void;
   children: React.ReactNode;
@@ -21,12 +15,11 @@ export default function DayRow({
 }: DayRowProps) {
   const dayNameFormatted = new Date(dayInfo.fullDate).toLocaleDateString(
     "en-US",
-    { weekday: "long" }
+    { weekday: "long", day: "numeric", month: "long" }
   );
 
   return (
     <div className="flex items-start p-4 border-b border-gray-200">
-      {/* Date and Day Name on the left */}
       <div className="w-1/3">
         <p
           className={`font-semibold ${
@@ -35,11 +28,8 @@ export default function DayRow({
         >
           {dayNameFormatted}
         </p>
-        <p className="text-sm text-gray-500">{dayInfo.date} September</p>
         {isToday && <p className="text-xs text-blue-600">(Today)</p>}
       </div>
-
-      {/* Slots and Add button on the right */}
       <div className="w-2/3 flex flex-col items-center gap-2">
         {children}
         <button
