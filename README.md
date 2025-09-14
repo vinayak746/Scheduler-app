@@ -1,10 +1,37 @@
-# 📅 Scheduler App
+<div align="center">
+  <h1>📅 Scheduler App</h1>
+  <p>An advanced, full-stack scheduling application designed for seamless daily and weekly planning. Built with modern web technologies for a smooth user experience.</p>
+  
+  <p>
+    <a href="https://scheduler-vinny.vercel.app/" target="_blank">
+      <img src="https://img.shields.io/badge/🚀_Live_Demo-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
+    </a>
+  </p>
+</div>
 
-An advanced, full-stack scheduling application designed for seamless daily and weekly planning. Built with React, TypeScript, Node.js, and PostgreSQL, Scheduler App lets you manage your time slots, appointments, and exceptions with a beautiful, modern interface. Experience real-time updates, mobile-first design, and robust backend logic for all your scheduling needs.
+## 🌟 Live Deployment
 
-## 🌐 Live Demo
+<div align="center">
+  <table>
+    <tr>
+      <th>Environment</th>
+      <th>URL</th>
+      <th>Status</th>
+    </tr>
+    <tr>
+      <td>Frontend</td>
+      <td><a href="https://scheduler-vinny.vercel.app" target="_blank">scheduler-vinny.vercel.app</a></td>
+      <td><img src="https://img.shields.io/website?url=https%3A%2F%2Fscheduler-vinny.vercel.app&label=&color=4CAF50" alt="Frontend Status"></td>
+    </tr>
+    <tr>
+      <td>Backend API</td>
+      <td><a href="https://scheduler-app-xizr.onrender.com" target="_blank">scheduler-app-xizr.onrender.com</a></td>
+      <td><img src="https://img.shields.io/website?url=https%3A%2F%2Fscheduler-app-xizr.onrender.com&label=&color=4CAF50" alt="Backend Status"></td>
+    </tr>
+  </table>
+</div>
 
-👉 Try it now: [Live Scheduler Frontend](https://scheduler-vinny.vercel.app/)
+> **Note:** The backend is hosted on a free Render.com instance and may take 30-60 seconds to "wake up" on the first visit. Please be patient!
 
 ## ✨ Features
 
