@@ -14,24 +14,43 @@ export async function fetchWeeklySchedule(date: Date) {
 
   try {
     const response = await fetch(
-      `${API_BASE_URL}/schedules?date=${dateString}`
+      `${API_BASE_URL}/schedules?date=${dateString}`,
+      {
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      }
     );
     if (!response.ok) {
-      throw new Error("Network response was not ok");
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
     return data;
-  } catch (error) {
+  } catch (error: unknown) {
     console.error("Failed to fetch weekly schedule:", error);
-    // Return an empty object in case of an error so the UI doesn't crash
-    return {};
+    const errorMessage = (error as Error).message || 'Unknown error';
+    const errorName = (error as Error).name || 'Error';
+    
+    if (errorName === 'AbortError') {
+      throw new Error('Request timed out. The server is taking too long to respond.');
+    } else if (!navigator.onLine) {
+      throw new Error('You are offline. Please check your internet connection.');
+    } else if (errorMessage.includes('Failed to fetch')) {
+      throw new Error('Failed to connect to the server. Please make sure the backend is running.');
+    } else {
+      throw new Error(`Failed to load schedule: ${errorMessage}`);
+    }
   }
 }
-export async function createScheduleException(slotData: {
-  date: string;
+export interface ScheduleExceptionBase {
   start_time: string;
   end_time: string;
-}) {
+  notes?: string;
+}
+
+export interface CreateScheduleExceptionData extends ScheduleExceptionBase {
+  date: string;
+}
+
+export async function createScheduleException(slotData: CreateScheduleExceptionData) {
   try {
     const response = await fetch(`${API_BASE_URL}/schedules/exceptions`, {
       method: "POST",
@@ -78,7 +97,7 @@ export async function deleteScheduleException(exceptionId: number) {
 
 export async function updateScheduleException(
   id: number,
-  slotData: { start_time: string; end_time: string }
+  slotData: ScheduleExceptionBase
 ) {
   try {
     const response = await fetch(`${API_BASE_URL}/schedules/exceptions/${id}`, {

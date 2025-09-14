@@ -17,12 +17,17 @@ const port = 3001;
 // Replace the simple app.use(cors()); with this:
 app.use(
   cors({
-    origin: "https://scheduler-vinny.vercel.app",
+      origin: "https://scheduler-vinny.vercel.app",
   })
 );
 app.use(express.json());
 
-// A simple health-check route to confirm the API is running.
+// Health check endpoint
+app.get("/health", (req: Request, res: Response) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// Root endpoint
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "API is alive and kicking!" });
 });

@@ -8,6 +8,7 @@ import {
   getDay,
   setMonth,
 } from "date-fns";
+import toast from 'react-hot-toast';
 import DayRow from "./DayRow";
 import Slot from "./Slot";
 import {
@@ -19,6 +20,7 @@ import {
 import Modal from "./Model";
 import NewSlotForm from "./NewSlotForm";
 import { HamburgerIcon } from "./Icons";
+import LoadingSpinner from "./LoadingSpinner";
 
 type ScheduleData = { [date: string]: any[] };
 
@@ -26,6 +28,7 @@ export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [schedule, setSchedule] = useState<ScheduleData>({});
   const [isMonthPickerOpen, setMonthPickerOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [modalState, setModalState] = useState<{
     isOpen: boolean;
     mode: "add" | "edit";
@@ -33,7 +36,16 @@ export default function Calendar() {
   }>({ isOpen: false, mode: "add", data: null });
 
   const getSchedule = useCallback(async () => {
-    setSchedule(await fetchWeeklySchedule(currentDate));
+    setIsLoading(true);
+    try {
+      const data = await fetchWeeklySchedule(currentDate);
+      setSchedule(data);
+    } catch (error) {
+      console.error('Error fetching schedule:', error);
+      toast.error('Failed to load schedule. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   }, [currentDate]);
   useEffect(() => {
     getSchedule();
@@ -53,34 +65,43 @@ export default function Calendar() {
   const handleCloseModal = () =>
     setModalState({ isOpen: false, mode: "add", data: null });
 
-  const handleSaveSlot = async (startTime: string, endTime: string) => {
+  const handleSaveSlot = async (startTime: string, endTime: string, notes?: string) => {
+    const loadingToast = toast.loading(modalState.mode === 'edit' ? 'Updating slot...' : 'Creating slot...');
     try {
       if (modalState.mode === "edit") {
         await updateScheduleException(modalState.data.id, {
           start_time: startTime,
           end_time: endTime,
+          notes: notes || ''
         });
+        toast.success('Slot updated successfully!', { id: loadingToast });
       } else {
         await createScheduleException({
           date: modalState.data.date,
           start_time: startTime,
           end_time: endTime,
+          notes: notes || ''
         });
+        toast.success('Slot created successfully!', { id: loadingToast });
       }
       handleCloseModal();
       await getSchedule();
     } catch (error) {
-      alert("Error: Could not save the slot.");
+      console.error('Error saving slot:', error);
+      toast.error(modalState.mode === 'edit' ? 'Failed to update slot' : 'Failed to create slot', { id: loadingToast });
     }
   };
 
   const handleDeleteSlot = async (slotId: number) => {
     if (window.confirm("Are you sure you want to delete this slot?")) {
+      const loadingToast = toast.loading('Deleting slot...');
       try {
         await deleteScheduleException(slotId);
         await getSchedule();
+        toast.success('Slot deleted successfully!', { id: loadingToast });
       } catch (error) {
-        alert("Error: Could not delete the slot.");
+        console.error('Error deleting slot:', error);
+        toast.error('Failed to delete slot', { id: loadingToast });
       }
     }
   };
@@ -104,7 +125,8 @@ export default function Calendar() {
   const weekDayAbbrs = ["S", "M", "T", "W", "T", "F", "S"];
 
   return (
-    <div className="w-full bg-gray-50 min-h-screen">
+    <div className="w-full bg-gray-50 min-h-screen relative">
+      {isLoading && <LoadingSpinner />}
       <div className="w-full max-w-7xl mx-auto bg-white flex flex-col rounded-lg shadow-lg my-8 overflow-hidden">
         <header className="flex items-center justify-between p-6 border-b border-gray-200 bg-white sticky top-0 z-10">
           <div className="flex items-center space-x-4">

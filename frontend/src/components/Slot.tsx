@@ -1,6 +1,6 @@
 import { TrashIcon, PencilIcon } from "./Icons";
-
-import React from "react";
+import React, { useState } from "react";
+import toast from 'react-hot-toast';
 
 interface SlotProps {
   slot: any;
@@ -18,9 +18,21 @@ export default function Slot({ slot, onDelete, onEdit }: SlotProps) {
     if (isEditable) onEdit(slot);
   };
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isEditable) onDelete(slot.id);
+    if (!isEditable || isDeleting) return;
+    
+    try {
+      setIsDeleting(true);
+      await onDelete(slot.id);
+    } catch (error) {
+      console.error('Error deleting slot:', error);
+      toast.error('Failed to delete slot');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -59,11 +71,20 @@ export default function Slot({ slot, onDelete, onEdit }: SlotProps) {
             </button>
             <button
               onClick={handleDelete}
-              className="p-1.5 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50"
-              title="Delete slot"
-              aria-label="Delete time slot"
+              disabled={isDeleting}
+              className={`p-1.5 rounded-lg transition-colors ${
+                isDeleting 
+                  ? 'text-gray-300 cursor-not-allowed' 
+                  : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
+              }`}
+              title={isDeleting ? 'Deleting...' : 'Delete slot'}
+              aria-label={isDeleting ? 'Deleting time slot' : 'Delete time slot'}
             >
-              <TrashIcon className="w-3.5 h-3.5" />
+              {isDeleting ? (
+                <div className="w-3.5 h-3.5 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+              ) : (
+                <TrashIcon className="w-3.5 h-3.5" />
+              )}
             </button>
           </div>
         )}
