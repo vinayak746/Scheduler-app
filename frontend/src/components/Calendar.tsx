@@ -1,14 +1,6 @@
-// src/components/Calendar.tsx
 import { useState, useEffect, useCallback } from "react";
-import {
-  format,
-  parseISO,
-  addDays,
-  subDays,
-  getDay,
-  setMonth,
-} from "date-fns";
-import toast from 'react-hot-toast';
+import { format, parseISO, addDays, subDays, getDay, setMonth } from "date-fns";
+import toast from "react-hot-toast";
 import DayRow from "./DayRow";
 import Slot from "./Slot";
 import {
@@ -41,8 +33,8 @@ export default function Calendar() {
       const data = await fetchWeeklySchedule(currentDate);
       setSchedule(data);
     } catch (error) {
-      console.error('Error fetching schedule:', error);
-      toast.error('Failed to load schedule. Please try again.');
+      console.error("Error fetching schedule:", error);
+      toast.error("Failed to load schedule. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -65,43 +57,48 @@ export default function Calendar() {
   const handleCloseModal = () =>
     setModalState({ isOpen: false, mode: "add", data: null });
 
-  const handleSaveSlot = async (startTime: string, endTime: string, notes?: string) => {
-    const loadingToast = toast.loading(modalState.mode === 'edit' ? 'Updating slot...' : 'Creating slot...');
+  const handleSaveSlot = async (startTime: string, endTime: string) => {
+    const loadingToast = toast.loading(
+      modalState.mode === "edit" ? "Updating slot..." : "Creating slot..."
+    );
     try {
       if (modalState.mode === "edit") {
         await updateScheduleException(modalState.data.id, {
           start_time: startTime,
           end_time: endTime,
-          notes: notes || ''
         });
-        toast.success('Slot updated successfully!', { id: loadingToast });
+        toast.success("Slot updated successfully!", { id: loadingToast });
       } else {
         await createScheduleException({
           date: modalState.data.date,
           start_time: startTime,
           end_time: endTime,
-          notes: notes || ''
         });
-        toast.success('Slot created successfully!', { id: loadingToast });
+        toast.success("Slot created successfully!", { id: loadingToast });
       }
       handleCloseModal();
       await getSchedule();
     } catch (error) {
-      console.error('Error saving slot:', error);
-      toast.error(modalState.mode === 'edit' ? 'Failed to update slot' : 'Failed to create slot', { id: loadingToast });
+      console.error("Error saving slot:", error);
+      toast.error(
+        modalState.mode === "edit"
+          ? "Failed to update slot"
+          : "Failed to create slot",
+        { id: loadingToast }
+      );
     }
   };
 
   const handleDeleteSlot = async (slotId: number) => {
     if (window.confirm("Are you sure you want to delete this slot?")) {
-      const loadingToast = toast.loading('Deleting slot...');
+      const loadingToast = toast.loading("Deleting slot...");
       try {
         await deleteScheduleException(slotId);
         await getSchedule();
-        toast.success('Slot deleted successfully!', { id: loadingToast });
+        toast.success("Slot deleted successfully!", { id: loadingToast });
       } catch (error) {
-        console.error('Error deleting slot:', error);
-        toast.error('Failed to delete slot', { id: loadingToast });
+        console.error("Error deleting slot:", error);
+        toast.error("Failed to delete slot", { id: loadingToast });
       }
     }
   };
@@ -137,7 +134,7 @@ export default function Calendar() {
               Your Schedule
             </h1>
           </div>
-          
+
           <div className="flex items-center space-x-6">
             <div className="relative">
               <button
@@ -155,9 +152,9 @@ export default function Calendar() {
                         key={month}
                         onClick={() => goToMonth(index)}
                         className={`px-3 py-2 text-sm rounded-md transition-colors ${
-                          format(currentDate, 'MMMM') === month
-                            ? 'bg-blue-100 text-blue-700 font-medium'
-                            : 'text-gray-700 hover:bg-gray-100'
+                          format(currentDate, "MMMM") === month
+                            ? "bg-blue-100 text-blue-700 font-medium"
+                            : "text-gray-700 hover:bg-gray-100"
                         }`}
                       >
                         {month.slice(0, 3)}
@@ -167,14 +164,23 @@ export default function Calendar() {
                 </div>
               )}
             </div>
-            
+
             <div className="flex items-center bg-gray-100 rounded-lg p-1">
               <button
                 onClick={goToPreviousWeek}
                 className="p-2 text-gray-600 hover:bg-white hover:text-gray-900 rounded-md transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </button>
               <span className="px-2 text-sm text-gray-600">Week</span>
@@ -182,15 +188,26 @@ export default function Calendar() {
                 onClick={goToNextWeek}
                 className="p-2 text-gray-600 hover:bg-white hover:text-gray-900 rounded-md transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </button>
             </div>
-            
-            <button 
+
+            <button
               className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              onClick={() => handleOpenAddModal(format(new Date(), 'yyyy-MM-dd'))}
+              onClick={() =>
+                handleOpenAddModal(format(new Date(), "yyyy-MM-dd"))
+              }
             >
               + New Slot
             </button>
@@ -203,15 +220,18 @@ export default function Calendar() {
               {weekData.map((day) => {
                 const isToday = day.fullDate === todayDate;
                 return (
-                  <div key={day.fullDate} className="flex flex-col items-center">
+                  <div
+                    key={day.fullDate}
+                    className="flex flex-col items-center"
+                  >
                     <span className="text-xs font-medium text-gray-500 mb-1">
                       {weekDayAbbrs[day.dayOfWeek]}
                     </span>
-                    <div 
+                    <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
-                        isToday 
-                          ? 'bg-blue-600 text-white shadow-md' 
-                          : 'text-gray-700 hover:bg-gray-100'
+                        isToday
+                          ? "bg-blue-600 text-white shadow-md"
+                          : "text-gray-700 hover:bg-gray-100"
                       }`}
                     >
                       {day.date}
@@ -247,29 +267,31 @@ export default function Calendar() {
             {weekData.map((day) => {
               const date = new Date(day.fullDate);
               const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-              
+
               return (
-                <div 
-                  key={day.fullDate} 
-                  className={`flex flex-col ${isWeekend ? 'bg-gray-50' : 'bg-white'} border-r border-gray-100 last:border-r-0`}
+                <div
+                  key={day.fullDate}
+                  className={`flex flex-col ${
+                    isWeekend ? "bg-gray-50" : "bg-white"
+                  } border-r border-gray-100 last:border-r-0`}
                 >
                   <div className="p-3 border-b border-gray-100">
                     <div className="flex flex-col items-center">
                       <span className="text-sm text-gray-500 font-medium">
                         {day.dayName.toUpperCase()}
                       </span>
-                      <span 
+                      <span
                         className={`mt-1 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                          day.fullDate === todayDate 
-                            ? 'bg-blue-600 text-white' 
-                            : 'text-gray-700 hover:bg-gray-100'
+                          day.fullDate === todayDate
+                            ? "bg-blue-600 text-white"
+                            : "text-gray-700 hover:bg-gray-100"
                         }`}
                       >
                         {day.date}
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="flex-1 p-2 overflow-y-auto max-h-[calc(100vh-200px)]">
                     <div className="space-y-2">
                       {day.slots.length > 0 ? (
@@ -287,7 +309,7 @@ export default function Calendar() {
                         </div>
                       )}
                     </div>
-                    
+
                     <button
                       onClick={() => handleOpenAddModal(day.fullDate)}
                       className="mt-2 w-full py-2 text-sm text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors flex items-center justify-center space-x-1"

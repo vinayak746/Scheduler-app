@@ -1,27 +1,39 @@
 # 📅 Scheduler App
 
-A modern, responsive scheduling application built with React, TypeScript, and Node.js. Easily manage your time slots, appointments, and daily schedule with an intuitive interface that works seamlessly across all devices.
+An advanced, full-stack scheduling application designed for seamless daily and weekly planning. Built with React, TypeScript, Node.js, and PostgreSQL, Scheduler App lets you manage your time slots, appointments, and exceptions with a beautiful, modern interface. Experience real-time updates, mobile-first design, and robust backend logic for all your scheduling needs.
 
 ## 🌐 Live Demo
 
-Check out the live frontend here: [https://scheduler-vinny.vercel.app/](https://scheduler-vinny.vercel.app/)
+👉 Try it now: [Live Scheduler Frontend](https://scheduler-vinny.vercel.app/)
 
 ## ✨ Features
 
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
-- **Intuitive Interface**: Clean, modern UI with smooth interactions
-- **Daily/Weekly View**: Switch between different time views
-- **Add/Edit/Delete Slots**: Manage your schedule with ease
-- **Notes Support**: Add important notes to your time slots
-- **Today Highlighting**: Current day is clearly highlighted
-- **Dark Mode**: Easy on the eyes in low-light conditions
+### 🌟 Core Features
+
+- **Beautiful Calendar UI**: Modern, clean, and responsive calendar for daily and weekly views
+- **Add, Edit & Delete Time Slots**: Easily manage your schedule with intuitive controls
+- **Slot Notes**: Attach notes to any slot for extra context
+- **Recurring Schedules**: Set up weekly recurring slots (with max 2 per day)
+- **One-Time Exceptions**: Override or cancel slots for specific dates
+- **Real-Time Feedback**: Toast notifications for all actions (add, edit, delete)
+- **Today Highlighting**: Instantly spot the current day in your calendar
+- **Mobile-First Design**: Optimized for phones, tablets, and desktops
+- **Fast Loading**: Loading spinners and error handling for smooth UX
+- **Backend Health Check**: Automatic reconnection if backend is down
+
+
+### 🛡️ Backend Logic
+
+- **Express + PostgreSQL**: Robust REST API for all schedule operations
+- **Business Rules**: Enforces max 2 slots per day and per exception
+- **Exception Handling**: Supports overrides and cancellations for any date
+- **Secure & Fast**: Uses parameterized queries and transactions for data integrity
 
 ## 🚀 Tech Stack
 
-- **Frontend**: React 18, TypeScript, Tailwind CSS, Vite
-- **Backend**: Node.js, Express, TypeScript
+- **Frontend**: React 19, TypeScript, Tailwind CSS, Vite, date-fns, react-hot-toast
+- **Backend**: Node.js, Express, TypeScript, PostgreSQL
 - **State Management**: React Context API
-- **Date Handling**: date-fns
 - **Build Tool**: Vite
 - **Linting**: ESLint, Prettier
 
@@ -46,7 +58,7 @@ Check out the live frontend here: [https://scheduler-vinny.vercel.app/](https://
    # Install backend dependencies
    cd backend
    npm install
-   
+    
    # Install frontend dependencies
    cd ../frontend
    npm install
@@ -58,6 +70,8 @@ Check out the live frontend here: [https://scheduler-vinny.vercel.app/](https://
      PORT=5000
      NODE_ENV=development
      ```
+
+      - Set up PostgreSQL and add your connection string to `.env` as `DATABASE_URL`
 
 ### Running the Application
 
@@ -75,13 +89,15 @@ Check out the live frontend here: [https://scheduler-vinny.vercel.app/](https://
 
 3. Open [http://localhost:5173](http://localhost:5173) in your browser
 
+The backend runs on port 3001 by default. The frontend connects automatically via environment variables.
+
 ## 📱 Mobile Responsiveness
 
-The app is fully responsive and provides an optimized experience on mobile devices with:
+Scheduler App is fully responsive:
 - Touch-friendly controls
 - Collapsible navigation
-- Optimized layouts for different screen sizes
-- Smooth scrolling and transitions
+- Optimized layouts for all screen sizes
+- Smooth transitions and animations
 
 ## 🎨 Design System
 
